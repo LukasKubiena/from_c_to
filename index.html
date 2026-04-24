@@ -271,6 +271,9 @@
             :root {
                 --padding-y: clamp(16px, 4.5vw, 24px); --padding-x: clamp(14px, 4vw, 20px);
                 --column-gutter-mobile: clamp(10px, 3vw, 16px); --font-size: 14.5px; --line-height: 1.51; --quad-size: 10px;
+                --hero-vh-max: 0.68;
+                --hero-ratio-num: 14;
+                --hero-ratio-den: 16;
             }
 
             /* Mobile: always white UI */
@@ -285,7 +288,7 @@
                 display: block;
                 width: 100dvw;
                 max-width: none;
-                height: var(--hero-h, min(68vh, calc(100dvw * 14 / 16)));
+                height: var(--hero-h, min(calc(var(--hero-vh-max) * 100vh), calc(100dvw * var(--hero-ratio-num) / var(--hero-ratio-den))));
                 object-fit: cover;
                 object-position: center;
                 border-radius: 0px;
@@ -301,6 +304,17 @@
             .right-edge .vienna { order: 1; margin: 0; padding: 0; margin-right: auto; text-align: left; }
             .right-edge a.quad-area { order: 2; }
             .inline-links { display: flex; flex-direction: column; align-items: flex-start; gap: 0.4em; margin-top: 0.65em; }
+        }
+
+        /* Small mobile: same grid, slightly smaller type + shorter hero */
+        @media (max-width: 390px) {
+            :root {
+                --font-size: 13.25px;
+                --line-height: 1.48;
+                --hero-vh-max: 0.50;
+                --hero-ratio-num: 10;
+                --hero-ratio-den: 16;
+            }
         }
         @media (prefers-reduced-motion: reduce) {
             .bg-layer { transition: opacity 0.01s; color: inherit; }
@@ -565,7 +579,12 @@
         if (!isFinite(available) || available <= 0) return;
 
         const vw = Math.max(1, window.innerWidth);
-        const desiredH = Math.min(window.innerHeight * 0.68, (vw * 14) / 16);
+        const rootStyle = getComputedStyle(document.documentElement);
+        const vhMax = parseFloat(rootStyle.getPropertyValue('--hero-vh-max')) || 0.68;
+        const ratioNum = parseFloat(rootStyle.getPropertyValue('--hero-ratio-num')) || 14;
+        const ratioDen = parseFloat(rootStyle.getPropertyValue('--hero-ratio-den')) || 16;
+
+        const desiredH = Math.min(window.innerHeight * vhMax, (vw * ratioNum) / ratioDen);
         const heroH = Math.max(80, Math.min(desiredH, available));
         const centerY = topEdge + (available / 2);
 
