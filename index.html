@@ -280,12 +280,12 @@
             .bg-layer {
                 inset: auto;
                 left: 50%;
-                top: 50%;
+                top: var(--hero-top, 50%);
                 transform: translate3d(-50%, -50%, 0);
                 display: block;
                 width: 100dvw;
                 max-width: none;
-                height: min(42vh, calc(100dvw * 9 / 16));
+                height: var(--hero-h, min(68vh, calc(100dvw * 14 / 16)));
                 object-fit: cover;
                 object-position: center;
                 border-radius: 0px;
@@ -294,6 +294,7 @@
                 display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(104px, 1.25fr) auto auto;
                 column-gap: var(--column-gutter-mobile); row-gap: clamp(14px, 3vh, 26px); padding-bottom: calc(var(--padding-y) + 4px);
             }
+            .fromc-first { font-weight: 600; }
             .col-a { grid-column: 1; grid-row: 1; width: 100%; } .col-b { grid-column: 2; grid-row: 1; width: 100%; }
             .col-c { grid-column: 1; grid-row: 3; width: 100%; align-self: start; } .col-d { grid-column: 2; grid-row: 3; width: 100%; align-self: start; }
             .right-edge { grid-column: 1 / -1; grid-row: 4; flex-direction: row; min-height: 0; align-self: end; justify-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; width: 100%; }
@@ -326,7 +327,7 @@
     <main class="home-shell" id="homeShell">
         <div class="col-a">
             <p>
-                <span class="hey" id="hey-lead" tabindex="0"><span class="hey-text">Hey</span><span class="comma">,</span></span> we are from-c, a production company and creative agency based in Vienna. We work with companies and institutions on brand, design, film, and creative direction.
+                <span class="hey" id="hey-lead" tabindex="0"><span class="hey-text">Hey</span><span class="comma">,</span></span> we are <span class="fromc-first">from-c</span>, a production company and creative agency based in Vienna. We work with companies and institutions on brand, design, film, and creative direction.
             </p>
         </div>
         <div class="col-b">
@@ -537,6 +538,39 @@
         const r = activeNode ? activeNode.getBoundingClientRect() : null;
         if (!r) return { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
         return { left: r.left, top: r.top, width: r.width, height: r.height };
+    }
+
+    function updateMobileHeroVars() {
+        if (inGallery) return;
+        if (!window.matchMedia || !window.matchMedia('(max-width: 768px)').matches) {
+            document.documentElement.style.removeProperty('--hero-top');
+            document.documentElement.style.removeProperty('--hero-h');
+            return;
+        }
+        if (!homeShell) return;
+        const a = homeShell.querySelector('.col-a');
+        const b = homeShell.querySelector('.col-b');
+        const c = homeShell.querySelector('.col-c');
+        const d = homeShell.querySelector('.col-d');
+        if (!a || !b || !c || !d) return;
+
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        const rc = c.getBoundingClientRect();
+        const rd = d.getBoundingClientRect();
+
+        const topEdge = Math.max(ra.bottom, rb.bottom);
+        const bottomEdge = Math.min(rc.top, rd.top);
+        const available = bottomEdge - topEdge;
+        if (!isFinite(available) || available <= 0) return;
+
+        const vw = Math.max(1, window.innerWidth);
+        const desiredH = Math.min(window.innerHeight * 0.68, (vw * 14) / 16);
+        const heroH = Math.max(80, Math.min(desiredH, available));
+        const centerY = topEdge + (available / 2);
+
+        document.documentElement.style.setProperty('--hero-h', `${heroH}px`);
+        document.documentElement.style.setProperty('--hero-top', `${centerY}px`);
     }
 
     function swapBy(dir) {
@@ -1037,6 +1071,10 @@
             applyBackgroundUrl(bgB, nextHero); bgB.style.opacity = '0';
             setUiForUrl(startHero); warmImageCache(nextHero);
             hidePageLoader();
+            requestAnimationFrame(() => {
+                updateMobileHeroVars();
+                requestAnimationFrame(updateMobileHeroVars);
+            });
 
             if (!reduced && BG_IMAGES.length > 1) {
                 homeSwapInterval = setInterval(swap, CYCLE_MS);
@@ -1116,6 +1154,13 @@
             e.preventDefault();
             trySwap(-1);
         }
+    });
+
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            updateMobileHeroVars();
+        }, 80);
     });
 
     // Uses native DOM click parsing deliberately circumvented from dragging checks
