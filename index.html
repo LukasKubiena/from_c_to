@@ -272,6 +272,24 @@
                 --padding-y: clamp(16px, 4.5vw, 24px); --padding-x: clamp(14px, 4vw, 20px);
                 --column-gutter-mobile: clamp(10px, 3vw, 16px); --font-size: 14.5px; --line-height: 1.51; --quad-size: 10px;
             }
+
+            /* Mobile: always white UI */
+            html, body { background: #ffffff; color: #000000; }
+
+            /* Mobile: image is full width, fixed crop size */
+            .bg-layer {
+                inset: auto;
+                left: 50%;
+                top: 50%;
+                transform: translate3d(-50%, -50%, 0);
+                display: block;
+                width: 100dvw;
+                max-width: none;
+                height: min(42vh, calc(100dvw * 9 / 16));
+                object-fit: cover;
+                object-position: center;
+                border-radius: 0px;
+            }
             .home-shell {
                 display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(104px, 1.25fr) auto auto;
                 column-gap: var(--column-gutter-mobile); row-gap: clamp(14px, 3vh, 26px); padding-bottom: calc(var(--padding-y) + 4px);
@@ -459,6 +477,8 @@
         return null;
     }
     function setUi(ui) {
+        // Mobile always uses black UI on white background.
+        if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) ui = '#000000';
         const isBlack = ui === '#000000';
         document.documentElement.style.setProperty('--ui', ui);
         document.documentElement.style.setProperty('--ui-rgb', isBlack ? '0, 0, 0' : '255, 255, 255');
@@ -466,6 +486,10 @@
     }
     function setUiFromLuminance(lum) { setUi(lum > 0.7 ? '#000000' : '#ffffff'); }
     function setUiForUrl(url) {
+        if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+            setUi('#000000');
+            return;
+        }
         const requestId = ++uiRequestId;
         const hint = parseUiHint(url);
         if (hint === 'white') return setUi('#ffffff');
@@ -506,6 +530,13 @@
         const activeNode = frontIsA ? bgA : bgB;
         const rawSrc = activeNode.getAttribute('src');
         return rawSrc || BG_IMAGES[index] || BG_IMAGES[0];
+    }
+
+    function getHomeHeroRect() {
+        const activeNode = frontIsA ? bgA : bgB;
+        const r = activeNode ? activeNode.getBoundingClientRect() : null;
+        if (!r) return { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        return { left: r.left, top: r.top, width: r.width, height: r.height };
     }
 
     function swapBy(dir) {
@@ -807,7 +838,8 @@
 
                     allHeroes.forEach(el => el.style.visibility = 'hidden');
 
-                    const fromRect = { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+                    const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+                    const fromRect = isMobile ? getHomeHeroRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
 
                     animateSharedImagePerfect(url, fromRect, toRect, {
                         duration: 900,
@@ -879,7 +911,8 @@
         galleryStage.classList.replace('active', 'closing');
         homeLogo.classList.add('closing');
 
-        const toRect = { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        const toRect = isMobile ? getHomeHeroRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
         
         animateSharedImagePerfect(src, fromRect, toRect, { duration: 850, fromRadius: 4, toRadius: 0 })
             .then((overlay) => {
