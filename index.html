@@ -430,7 +430,7 @@
                 display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(104px, 1.25fr) auto auto;
                 column-gap: var(--column-gutter-mobile); row-gap: clamp(14px, 3vh, 26px); padding-bottom: calc(var(--padding-y) + 4px);
             }
-            .fromc-first { font-weight: 300; }
+            .fromc-first { font-weight: inherit; }
             .col-a { grid-column: 1; grid-row: 1; width: 100%; } .col-b { grid-column: 2; grid-row: 1; width: 100%; }
             .col-c { grid-column: 1; grid-row: 3; width: 100%; align-self: start; } .col-d { grid-column: 2; grid-row: 3; width: 100%; align-self: start; }
             .right-edge { grid-column: 1 / -1; grid-row: 4; flex-direction: row; min-height: 0; align-self: end; justify-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; width: 100%; }
@@ -1381,20 +1381,6 @@
                         setHomeHero(src, { mode: 'front' });
                         const isDesktop = window.matchMedia && window.matchMedia('(min-width: 769px)').matches;
                         const heroFront = isDesktop ? (frontIsA ? homeHeroA : homeHeroB) : null;
-                        const heroBack = isDesktop ? (frontIsA ? homeHeroB : homeHeroA) : null;
-
-                        // Ensure the contained hero is fully visible immediately before we fade the overlay.
-                        // Some browsers still "paint-lag" a decoded image by a frame or two.
-                        if (isDesktop && heroFront) {
-                            heroFront.style.transition = 'none';
-                            if (heroBack) heroBack.style.transition = 'none';
-                            heroFront.style.opacity = '1';
-                            if (heroBack) heroBack.style.opacity = '0';
-                            requestAnimationFrame(() => {
-                                heroFront.style.transition = '';
-                                if (heroBack) heroBack.style.transition = '';
-                            });
-                        }
 
                         document.body.classList.add('theme-transitioning');
                         clearTimeout(document.body.themeTransitionTimer);
@@ -1435,10 +1421,10 @@
                         };
                         if (heroFront && heroFront.decode) {
                             heroFront.decode()
-                                .then(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)))))
-                                .catch(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)))));
+                                .then(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)))
+                                .catch(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)));
                         } else {
-                            requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay))));
+                            requestAnimationFrame(() => requestAnimationFrame(removeOverlay));
                         }
                     });
                 };
