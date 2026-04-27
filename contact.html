@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact - from-c</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" href="favicon.png" sizes="32x32">
+  <link rel="preload" href="NeueHaasDisplay-Light.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {
+      font-family: 'NeueHaasDisplay-Light';
+      src: url('NeueHaasDisplay-Light.woff2') format('woff2');
+      font-display: swap;
+    }
+
+    :root {
+      --pad-y: clamp(14px, 2vh, 28px);
+      --pad-x: clamp(14px, 2vw, 28px);
+      --ui: #000000;
+      --font-size: 14px;
+      --line-height: 1.37;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ffffff;
+      color: var(--ui);
+      font-family: 'NeueHaasDisplay-Light', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      letter-spacing: -0.02em;
+      opacity: 1;
+      transition: opacity 0.42s cubic-bezier(0.5, 0, 0.2, 1);
+    }
+
+    body.is-leaving { opacity: 0; pointer-events: none; }
+
+    .home-logo {
+      position: fixed;
+      top: var(--pad-y);
+      left: var(--pad-x);
+      width: 24px;
+      height: 24px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+    .home-logo img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transform: rotate(-45deg);
+      opacity: 0;
+      animation: logoSpinIn 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s forwards;
+    }
+    .home-logo img.spin-out {
+      animation: logoSpinOut 0.65s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+    }
+
+    .wrap {
+      height: 100%;
+      padding: var(--pad-y) var(--pad-x);
+      display: grid;
+      place-items: center;
+    }
+
+    .card {
+      width: min(520px, 92vw);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px 14px;
+      align-items: start;
+    }
+
+    /* Subtle entrance (similar spirit to gallery items) */
+    .card > * {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+      filter: blur(0.2px);
+      will-change: opacity, transform, filter;
+    }
+    body.has-entered .card > * {
+      animation: contactIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    body.has-entered .card > *:nth-child(1) { animation-delay: 0.05s; }
+    body.has-entered .card > *:nth-child(2) { animation-delay: 0.09s; }
+    body.has-entered .card > *:nth-child(3) { animation-delay: 0.14s; }
+    body.has-entered .card > *:nth-child(4) { animation-delay: 0.18s; }
+    body.has-entered .card > *:nth-child(5) { animation-delay: 0.22s; }
+    body.has-entered .card > *:nth-child(6) { animation-delay: 0.26s; }
+
+    @keyframes contactIn {
+      to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card > * { opacity: 1; transform: none; filter: none; animation: none !important; }
+      body.has-entered .card > * { animation: none !important; }
+    }
+
+    .title {
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      background: #000;
+      justify-self: end;
+      align-self: start;
+      margin-top: 0;
+    }
+
+    @keyframes logoSpinIn {
+      0% { transform: rotate(-45deg); opacity: 0; }
+      100% { transform: rotate(0deg); opacity: 1; }
+    }
+    @keyframes logoSpinOut {
+      0% { transform: rotate(0deg); opacity: 1; }
+      100% { transform: rotate(45deg); opacity: 0; }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid rgba(0,0,0,0.35);
+      border-radius: 0;
+      padding: 10px 10px;
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      outline: none;
+    }
+
+    textarea { min-height: 140px; resize: none; }
+
+    .field { grid-column: 1 / -1; }
+
+    .actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 2px;
+    }
+
+    button {
+      font: inherit;
+      background: transparent;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+      color: inherit;
+    }
+    button:focus-visible { outline: 1px solid #000; outline-offset: 3px; }
+
+    .status {
+      grid-column: 1 / -1;
+      min-height: 1.1em;
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <a class="home-logo" id="homeLogo" href="index.html" aria-label="Back to home">
+    <img src="logo2.svg" alt="Home" />
+  </a>
+
+  <main class="wrap">
+    <!-- Uses FormSubmit (static-friendly). First submission requires confirming the target inbox. -->
+    <form class="card" id="contactForm" autocomplete="on" action="https://formsubmit.co/lukasmariakubiena@gmail.com" method="POST">
+      <div class="title">From c, to?</div>
+      <div class="dot" aria-hidden="true"></div>
+
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" />
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+      </div>
+
+      <div class="field">
+        <label for="message">Your message</label>
+        <textarea id="message" name="message" autocomplete="off" required></textarea>
+      </div>
+
+      <input type="hidden" name="_subject" value="from-c contact" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_template" value="box" />
+
+      <div class="actions">
+        <button type="submit" id="sendBtn">send</button>
+      </div>
+
+      <div class="status" id="status" aria-live="polite"></div>
+    </form>
+  </main>
+
+  <script>
+    (function () {
+      const prefersReducedMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Entrance
+      requestAnimationFrame(() => {
+        document.body.classList.add('has-entered');
+      });
+
+      // Submit without leaving the page (works for static hosting).
+      const form = document.getElementById('contactForm');
+      const sendBtn = document.getElementById('sendBtn');
+      const status = document.getElementById('status');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (sendBtn) sendBtn.disabled = true;
+        if (status) status.textContent = 'sending…';
+
+        try {
+          const fd = new FormData(form);
+          // FormSubmit supports regular POSTs; no-cors avoids CORS issues while still delivering.
+          await fetch(form.action, { method: 'POST', body: fd, mode: 'no-cors' });
+          form.reset();
+          if (status) status.textContent = 'sent succesfully!';
+        } catch (err) {
+          if (status) status.textContent = 'could not send — try again';
+        } finally {
+          if (sendBtn) sendBtn.disabled = false;
+        }
+      });
+
+      // Smooth leave back to home.
+      const homeLogo = document.getElementById('homeLogo');
+      const homeLogoImg = homeLogo ? homeLogo.querySelector('img') : null;
+      homeLogo.addEventListener('click', (e) => {
+        if (prefersReducedMotion) return;
+        e.preventDefault();
+        // Tell home to skip the intro typing on return.
+        try { sessionStorage.setItem('skipIntroOnce', '1'); } catch (_) {}
+        if (homeLogoImg) homeLogoImg.classList.add('spin-out');
+        document.body.classList.add('is-leaving');
+        setTimeout(() => { window.location.href = homeLogo.href; }, 650);
+      });
+    })();
+  </script>
+</body>
+</html>
+

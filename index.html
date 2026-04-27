@@ -27,7 +27,7 @@
             --ui-inverse: #ffffff;
             --col-width: min(20ch, 16vw);
             --column-gutter: clamp(10px, 1.4vw, 22px);
-            --font-size: 13.5px;
+            --font-size: 14px;
             --line-height: 1.37;
             --block-gap: 0.45em;
             --quad-size: 9px;
@@ -123,6 +123,92 @@
         @keyframes loaderSpin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+
+        /* Intro type-out (shown before logo loader) */
+        .intro-loader {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 11000; /* above .page-loader */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(var(--padding-y) * 1.5) calc(var(--padding-x) * 1.5);
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.42s ease, visibility 0.42s;
+            pointer-events: all;
+        }
+        .intro-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .intro-line {
+            position: relative;
+            font: inherit;
+            font-weight: 300;
+            letter-spacing: inherit;
+            color: var(--ui);
+            font-size: clamp(15px, 1.55vw, 19px);
+            line-height: 1.45;
+            text-align: center;
+            width: max-content;
+            max-width: 92vw;
+        }
+        .intro-ghost {
+            opacity: 0;
+            pointer-events: none;
+            user-select: none;
+            white-space: normal;
+        }
+        .intro-live {
+            position: absolute;
+            inset: 0;
+            white-space: normal;
+        }
+        /* Desktop: keep it on one line unless screen gets narrow */
+        @media (min-width: 900px) {
+            .intro-ghost,
+            .intro-live { white-space: nowrap; }
+        }
+        @media (max-width: 768px) {
+            .intro-line { font-size: clamp(15px, 4.2vw, 18px); text-align: left; }
+        }
+        .intro-heyWrap { display: inline-block; }
+        .intro-hey {
+            display: inline-block;
+            transform-origin: 50% 70%;
+        }
+        .intro-hey.jiggle-once { animation: introJiggle 0.95s ease-in-out 1; }
+        @keyframes introJiggle {
+            0%, 78%, 100% { transform: translate3d(0,0,0) rotate(0); }
+            82% { transform: translate3d(-1px,0,0) rotate(-2deg); }
+            86% { transform: translate3d( 2px,0,0) rotate( 3deg); }
+            90% { transform: translate3d(-2px,0,0) rotate(-3deg); }
+            94% { transform: translate3d( 1px,0,0) rotate( 2deg); }
+        }
+        .intro-comma {
+            display: inline-block;
+            transform-origin: center;
+            visibility: hidden;
+        }
+        .intro-comma.revealed { visibility: visible; }
+        .intro-comma.jingle { animation: commaBellJingle 0.85s ease-in-out 1; }
+        .intro-cursor {
+            display: inline-block;
+            width: 1px;
+            height: 0.92em;
+            vertical-align: -0.06em;
+            background: currentColor;
+            margin-left: 2px;
+            animation: introBlink 0.7s infinite;
+        }
+        @keyframes introBlink {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
         }
 
         /* Native IMG backgrounds to prevent double loads entirely */
@@ -344,7 +430,7 @@
                 display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(104px, 1.25fr) auto auto;
                 column-gap: var(--column-gutter-mobile); row-gap: clamp(14px, 3vh, 26px); padding-bottom: calc(var(--padding-y) + 4px);
             }
-            .fromc-first { font-weight: 600; }
+            .fromc-first { font-weight: 300; }
             .col-a { grid-column: 1; grid-row: 1; width: 100%; } .col-b { grid-column: 2; grid-row: 1; width: 100%; }
             .col-c { grid-column: 1; grid-row: 3; width: 100%; align-self: start; } .col-d { grid-column: 2; grid-row: 3; width: 100%; align-self: start; }
             .right-edge { grid-column: 1 / -1; grid-row: 4; flex-direction: row; min-height: 0; align-self: end; justify-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; width: 100%; }
@@ -383,6 +469,15 @@
     </style>
 </head>
 <body class="is-entering">
+    <div class="intro-loader" id="introLoader" aria-hidden="true">
+        <div class="intro-line">
+            <span class="intro-ghost" id="introGhost">Hey, we are from-c, a production company and creative agency based in Vienna.</span>
+            <span class="intro-live" aria-hidden="true">
+                <span class="intro-heyWrap" id="introHeyWrap"><span class="intro-hey" id="introHey"></span><span class="intro-comma" id="introComma">,</span></span><span id="introRest"></span><span class="intro-cursor" aria-hidden="true"></span>
+            </span>
+        </div>
+    </div>
+
     <div class="page-loader" id="pageLoader" aria-hidden="true">
         <img src="logo2.svg" alt="">
     </div>
@@ -425,7 +520,7 @@
             <p>Get in touch if we care about the same things!</p>
             <div class="inline-links">
                 <a href="#" id="navToGalleryInline">work</a>
-                <a href="mailto:lukasmariakubiena@gmail.com">send us a mail</a>
+                <a href="contact.html">contact us</a>
             </div>
         </div>
     </main>
@@ -465,6 +560,11 @@
     const gallerySurface = document.getElementById('gallerySurface');
     const homeLogo = document.getElementById('homeLogo');
     const pageLoader = document.getElementById('pageLoader');
+    const introLoader = document.getElementById('introLoader');
+    const introHeyWrap = document.getElementById('introHeyWrap');
+    const introHey = document.getElementById('introHey');
+    const introComma = document.getElementById('introComma');
+    const introRest = document.getElementById('introRest');
     const homeHeroA = document.getElementById('homeHeroA');
     const homeHeroB = document.getElementById('homeHeroB');
     const homeHeroCaption = document.getElementById('homeHeroCaption');
@@ -489,6 +589,16 @@
     const LOADER_MIN_VISIBLE_MS = 500;
     const LOADER_MAX_WAIT_MS = 5000;
     const LOADER_PRELOAD_AHEAD = 2;
+    const INTRO_TEXT_REST = " we are from-c, a production company and creative agency based in Vienna.";
+    const INTRO_HEY_SPEED_MS = 150;
+    const INTRO_REST_SPEED_MS = 54;
+    const INTRO_CURSOR_ONLY_MS = 950;
+    const INTRO_START_DELAY_MS = INTRO_CURSOR_ONLY_MS;
+    const INTRO_AFTER_DONE_DELAY_MS = 850;
+    const INTRO_TO_LOGO_FADE_MS = 420;
+    const LOADER_MIN_AFTER_INTRO_MS = 800;
+    const INTRO_PAUSE_AFTER_HEY_MS = 240;
+    const INTRO_PAUSE_AFTER_FROMC_MS = 340;
 
     function applyBackgroundUrl(el, url) { el.src = url; } 
     const HOME_CAPTIONS = {
@@ -566,6 +676,105 @@
         setTimeout(() => {
             if (pageLoader && pageLoader.parentNode) pageLoader.parentNode.removeChild(pageLoader);
         }, 500);
+    }
+
+    // Incrementing this cancels any in-flight intro typing loops.
+    let introTypingToken = 0;
+
+    function typeOut(el, text, { speed = 35, startDelay = 0, append = false, token = 0 } = {}) {
+        return new Promise(resolve => {
+            if (!el) return resolve();
+            if (!append) el.textContent = "";
+            let i = 0;
+            let nextAt = 0;
+            const startAt = performance.now() + Math.max(0, startDelay);
+            const step = (now) => {
+                if (token && token !== introTypingToken) return resolve();
+                if (now < startAt) return requestAnimationFrame(step);
+                if (!nextAt) nextAt = now + speed;
+                if (now >= nextAt) {
+                    // catch-up: emit at most a couple chars per frame to keep it smooth
+                    let emitted = 0;
+                    while (i < text.length && now >= nextAt && emitted < 3) {
+                        el.textContent += text[i++];
+                        nextAt += speed;
+                        emitted++;
+                    }
+                    if (i >= text.length) return resolve();
+                }
+                requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+        });
+    }
+
+    function runIntroSequence({ reducedMotion } = {}) {
+        return new Promise(resolve => {
+            if (!introLoader) return resolve({ revealedLogoAt: performance.now() });
+            const myToken = ++introTypingToken;
+            let finished = false;
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+                const revealedLogoAt = performance.now();
+                introLoader.classList.add('hidden');
+                setTimeout(() => {
+                    if (introLoader && introLoader.parentNode) introLoader.parentNode.removeChild(introLoader);
+                    resolve({ revealedLogoAt });
+                }, INTRO_TO_LOGO_FADE_MS + 20);
+            };
+
+            // Clicking during the intro should skip typing and reveal the loader immediately.
+            const onSkip = (e) => {
+                // Prevent accidental link clicks underneath on mobile.
+                if (e) { try { e.preventDefault(); e.stopPropagation(); } catch (_) {} }
+                introTypingToken++; // cancel any in-flight typeOut loops
+                finish();
+            };
+            introLoader.addEventListener('pointerdown', onSkip, { passive: false, once: true });
+            introLoader.addEventListener('click', onSkip, { passive: false, once: true });
+
+            if (reducedMotion) {
+                if (introHey) introHey.textContent = "Hey";
+                if (introComma) introComma.classList.add('revealed');
+                if (introRest) introRest.textContent = INTRO_TEXT_REST;
+                setTimeout(finish, 180);
+                return;
+            }
+
+            (async () => {
+                // 1) "Hey" types, then comma jingle + pause
+                await typeOut(introHey, "Hey", { speed: INTRO_HEY_SPEED_MS, startDelay: INTRO_START_DELAY_MS, token: myToken });
+                if (finished) return;
+                if (introComma) {
+                    introComma.classList.add('revealed');
+                    // replay-safe (force reflow on the element itself)
+                    introComma.classList.remove('jingle');
+                    void introComma.offsetWidth;
+                    introComma.classList.add('jingle');
+                }
+                if (introHey) {
+                    introHey.classList.remove('jiggle-once');
+                    void introHey.offsetWidth;
+                    introHey.classList.add('jiggle-once');
+                }
+                await delay(INTRO_PAUSE_AFTER_HEY_MS);
+                if (finished) return;
+
+                // 2) Type up to "we are from-c", pause, then continue
+                const partA = " we are from-c";
+                const partB = ", a production company and creative agency ";
+                const partC = "based in Vienna.";
+                await typeOut(introRest, partA, { speed: INTRO_REST_SPEED_MS, append: false, token: myToken });
+                if (finished) return;
+                await delay(INTRO_PAUSE_AFTER_FROMC_MS);
+                if (finished) return;
+                await typeOut(introRest, partB + partC, { speed: INTRO_REST_SPEED_MS, append: true, token: myToken });
+                if (finished) return;
+
+                setTimeout(finish, INTRO_AFTER_DONE_DELAY_MS);
+            })();
+        });
     }
 
 
@@ -748,12 +957,31 @@
     }
     function swap() { swapBy(1); }
 
+    // More uniform than setInterval (avoids "catch-up" bursts after tab stalls).
+    let homeSwapTimeout = null;
+    function stopHomeSwapLoop() {
+        if (homeSwapTimeout) clearTimeout(homeSwapTimeout);
+        homeSwapTimeout = null;
+    }
+    function startHomeSwapLoop() {
+        stopHomeSwapLoop();
+        if (inGallery) return;
+        if (prefersReducedMotion) return;
+        if (!BG_IMAGES || BG_IMAGES.length <= 1) return;
+        const schedule = () => {
+            homeSwapTimeout = setTimeout(() => {
+                if (!inGallery && !transitioning) swap();
+                schedule();
+            }, CYCLE_MS);
+        };
+        schedule();
+    }
+
     function resetHomeSwapTimer() {
         if (inGallery) return;
         if (prefersReducedMotion) return;
         if (!BG_IMAGES || BG_IMAGES.length <= 1) return;
-        clearInterval(homeSwapInterval);
-        homeSwapInterval = setInterval(swap, CYCLE_MS);
+        startHomeSwapLoop();
     }
 
     let bodyW = 0, bodyH = 0;
@@ -896,8 +1124,9 @@
             overlay.style.backgroundPosition = 'center';
             overlay.style.backgroundRepeat = 'no-repeat';
             overlay.style.backgroundSize = 'cover';
-            // Keep transparent so underlying hero never flashes white while decoding.
-            overlay.style.backgroundColor = 'transparent';
+            // Use a stable non-white backdrop so decode/paint never shows a white frame.
+            // (If the image hasn't painted yet, this color is what you'll see.)
+            overlay.style.backgroundColor = '#f8f8f7';
             overlay.style.margin = '0';
             overlay.style.border = 'none';
             overlay.style.borderRadius = opts.fromRadius + 'px';
@@ -946,14 +1175,19 @@
 
     function setTransitionBackdrop(on) {
         // Prevent any “white frame” flashes during handoffs.
-        if (on) document.body.style.background = '#f8f8f7';
-        else document.body.style.background = '';
+        if (on) {
+            document.documentElement.style.background = '#f8f8f7';
+            document.body.style.background = '#f8f8f7';
+        } else {
+            document.documentElement.style.background = '';
+            document.body.style.background = '';
+        }
     }
 
     function openGallerySPA() {
         if (inGallery || transitioning) return;
         inGallery = true; transitioning = true;
-        clearInterval(homeSwapInterval);
+        stopHomeSwapLoop();
         homeLogo.classList.remove('fading');
         gvx = 0; gvy = 0;
 
@@ -1058,18 +1292,28 @@
                     })
                         .then((overlay) => {
                             const heroImg = targetTile ? targetTile.querySelector('img') : null;
+                            const fadeOutAndRemoveOverlay = () => {
+                                // Keep the overlay for at least one paint after revealing the real tile,
+                                // then fade it out. This avoids the single-frame "white flash" some browsers
+                                // produce when image decode resolves but painting lags.
+                                requestAnimationFrame(() => {
+                                    requestAnimationFrame(() => {
+                                        overlay.style.transition = 'opacity 0.14s ease';
+                                        overlay.style.opacity = '0';
+                                        setTimeout(() => {
+                                            overlay.remove();
+                                            transitioning = false;
+                                            // We’re safely in gallery now; keep the gallery off-white backdrop.
+                                            setTransitionBackdrop(true);
+                                        }, 160);
+                                    });
+                                });
+                            };
                             const reveal = () => {
                                 allHeroes.forEach(el => el.style.visibility = '');
-                                // Reveal gallery first, then remove overlay on next frame
-                                // so the handoff never exposes an intermediate paint.
                                 galleryStage.classList.remove('opening');
                                 galleryStage.style.opacity = '';
-                                requestAnimationFrame(() => {
-                                    overlay.remove();
-                                    transitioning = false;
-                                    // We’re safely in gallery now; keep the gallery off-white backdrop.
-                                    setTransitionBackdrop(true);
-                                });
+                                fadeOutAndRemoveOverlay();
                             };
                             if (heroImg && heroImg.decode) {
                                 heroImg.decode().then(reveal).catch(reveal);
@@ -1137,6 +1381,20 @@
                         setHomeHero(src, { mode: 'front' });
                         const isDesktop = window.matchMedia && window.matchMedia('(min-width: 769px)').matches;
                         const heroFront = isDesktop ? (frontIsA ? homeHeroA : homeHeroB) : null;
+                        const heroBack = isDesktop ? (frontIsA ? homeHeroB : homeHeroA) : null;
+
+                        // Ensure the contained hero is fully visible immediately before we fade the overlay.
+                        // Some browsers still "paint-lag" a decoded image by a frame or two.
+                        if (isDesktop && heroFront) {
+                            heroFront.style.transition = 'none';
+                            if (heroBack) heroBack.style.transition = 'none';
+                            heroFront.style.opacity = '1';
+                            if (heroBack) heroBack.style.opacity = '0';
+                            requestAnimationFrame(() => {
+                                heroFront.style.transition = '';
+                                if (heroBack) heroBack.style.transition = '';
+                            });
+                        }
 
                         document.body.classList.add('theme-transitioning');
                         clearTimeout(document.body.themeTransitionTimer);
@@ -1158,23 +1416,29 @@
                         
                         // Only remove the overlay once the home hero is ready, to avoid a white flash at handoff.
                         const removeOverlay = () => {
-                            gsap.to(overlay, { 
-                                opacity: 0, 
-                                duration: 0.15, 
-                                ease: "power2.inOut", 
+                            // Keep the off-white backdrop through the fade so we never reveal a white frame,
+                            // then restore the page background a couple frames after removal.
+                            setTransitionBackdrop(true);
+                            gsap.to(overlay, {
+                                opacity: 0,
+                                duration: 0.22,
+                                ease: "power2.inOut",
                                 onComplete: () => {
                                     overlay.remove();
-                                    // Back on home: restore the white page backdrop.
-                                    setTransitionBackdrop(false);
+                                    requestAnimationFrame(() => {
+                                        requestAnimationFrame(() => {
+                                            setTransitionBackdrop(false);
+                                        });
+                                    });
                                 }
                             });
                         };
                         if (heroFront && heroFront.decode) {
                             heroFront.decode()
-                                .then(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)))
-                                .catch(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)));
+                                .then(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)))))
+                                .catch(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay)))));
                         } else {
-                            requestAnimationFrame(() => requestAnimationFrame(removeOverlay));
+                            requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(removeOverlay))));
                         }
                     });
                 };
@@ -1182,13 +1446,28 @@
                 if (incoming.decode) { incoming.decode().then(finalizePaint).catch(finalizePaint); } 
                 else { finalizePaint(); }
                 
-                homeSwapInterval = setInterval(swap, CYCLE_MS);
+                startHomeSwapLoop();
             });
     }
 
     function init() {
         const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         prefersReducedMotion = !!reduced;
+
+        // Intro always happens before we allow the logo loader to disappear,
+        // except when returning from contact (skip once).
+        let skipIntroOnce = false;
+        try {
+            skipIntroOnce = sessionStorage.getItem('skipIntroOnce') === '1';
+            if (skipIntroOnce) sessionStorage.removeItem('skipIntroOnce');
+        } catch (_) {}
+        const introPromise = skipIntroOnce
+            ? Promise.resolve({ revealedLogoAt: performance.now() })
+            : runIntroSequence({ reducedMotion: prefersReducedMotion });
+        if (skipIntroOnce && introLoader && introLoader.parentNode) {
+            introTypingToken++; // cancel any in-flight typing
+            introLoader.parentNode.removeChild(introLoader);
+        }
         
         function triggerEntrance() {
             try {
@@ -1259,6 +1538,9 @@
             }
             setHomeHero(startHero, { mode: 'front' });
             setUiForUrl(startHero); warmImageCache(nextHero);
+            const introMeta = await introPromise;
+            const sinceIntro = Math.max(0, performance.now() - (introMeta?.revealedLogoAt || performance.now()));
+            if (sinceIntro < LOADER_MIN_AFTER_INTRO_MS) await delay(LOADER_MIN_AFTER_INTRO_MS - sinceIntro);
             hidePageLoader();
             requestAnimationFrame(() => {
                 updateMobileHeroVars();
@@ -1266,7 +1548,7 @@
             });
 
             if (!reduced && BG_IMAGES.length > 1) {
-                homeSwapInterval = setInterval(swap, CYCLE_MS);
+                startHomeSwapLoop();
             }
 
             if (!rafId) tickGallery();
